@@ -137,80 +137,119 @@ export class EmptyStatement extends GoNode {
 }
 
 // Type classes
-export interface Type {
-  type: "type";
+export abstract class Type {
+  type: string;
   type_type: string;
+
+  constructor(type_type: string) {
+    this.type = 'type';
+    this.type_type = type_type;
+  }
+
+  abstract isSameType(type: Type): boolean;
+
+  getTypeName(): string {
+    return this.type_type;
+  }
 }
 
-export class BasicTypeClass implements Type {
-  type: "type";
-  type_type: "basic";
+export class BasicTypeClass extends Type {
   constructor(public type_value: BasicType) {
-    this.type = "type";
-    this.type_type = "basic";
+    super('basic')
+  }
+
+  isSameType(type: Type) {
+    if (type.type_type == 'basic') {
+      return this.type_value == (type as BasicTypeClass).type_value;
+    }
+    return false;
+  }
+
+  getTypeName(): string {
+    return this.type_value;
   }
 }
 
-export class TupleType implements Type {
-  type: "type";
-  type_type: "tuple";
+export class TupleType extends Type {
   constructor(public type_values: Type[]) {
-    this.type = "type";
-    this.type_type = "tuple";
+    super('tuple');
+  }
+  
+  isSameType(type: Type) {
+    if (type.type_type == 'tuple') {
+      let isSame = true;
+      this.type_values.forEach((type_value, index) => {
+        isSame = isSame && type_value.isSameType((type as TupleType).type_values[index]);
+      });
+      return isSame;
+    }
+    return false;
   }
 }
 
-export class FunctionType implements Type {
-  type: "type";
-  type_type: "function";
-  constructor(public formal_values: Type[], public return_value: Type) {
-    this.type = "type";
-    this.type_type = "function";
+export class FunctionType extends Type {
+  constructor(public formal_values: Type[], public return_value: Type | undefined) {
+    super('function');
+  }
+  
+  // TODO: Make this more specific
+  isSameType(type: Type) {
+    return type.type_type == 'function'
   }
 }
 
-export class ChanType implements Type {
-  type: "type";
-  type_type: "chan";
+export class ChanType extends Type {
   constructor(public send_receive_type: string, public chan_value_type: Type) {
-    this.type = "type";
-    this.type_type = "chan";
+    super('chan');
+  }
+
+  // TODO: Make this more specific
+  isSameType(type: Type) {
+    return type.type_type == 'chan';
   }
 }
 
-export class ArrayType implements Type {
-  type: "type";
-  type_type: "array";
+export class ArrayType extends Type {
   constructor(public arr_type: Type, public size: number) {
-    this.type = "type";
-    this.type_type = "array";
+    super('array');
+  }
+
+  // TODO: Make this more specific
+  isSameType(type: Type): boolean {
+    return type.type_type == 'array';
   }
 }
 
-export class SliceType implements Type {
-  type: "type";
-  type_type: "slice";
+export class SliceType extends Type {
   constructor(public slice_type: Type) {
-    this.type = "type";
-    this.type_type = "slice";
+    super('slice');
+  }
+  
+  // TODO: Make this more specific
+  isSameType(type: Type): boolean {
+    return type.type_type == 'slice';
   }
 }
 
-export class CustomType implements Type {
-  type: "type";
-  type_type: "custom";
+export class CustomType extends Type {
   constructor(public type_name: string) {
-    this.type = "type";
-    this.type_type = "custom";
+    super('custom')
+  }
+
+  // TODO: Make this more specific
+  isSameType(type: Type): boolean {
+    return type.type_type == 'custom';
   }
 }
 
-export class StructType implements Type {
-  type: "type";
-  type_type: "struct";
+export class StructType extends Type {
   constructor(public elems: StructElement[]) {
-    this.type = "type";
-    this.type_type = "struct";
+    super('struct');
+  }
+
+  // TODO: Make this more specific
+  isSameType(type: Type): boolean {
+    return type.type_type == 'struct';
   }
 }
 
